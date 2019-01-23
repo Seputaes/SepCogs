@@ -38,6 +38,8 @@ red-discordbot = { git = "https://github.com/Seputaes/Red-DiscordBot.git", branc
 tox = "^3.7"
 toml = "*"
 black = "18.9b0"
+pytest = "*"
+pytest-asyncio = "*"
 
 [build-system]
 requires = ["poetry>=0.12"]
