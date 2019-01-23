@@ -1,0 +1,18 @@
+language: python
+dist: xenial
+cache: pip
+notifications:
+  email: false
+
+install:
+  - pip install tox tox-venv tox-travis
+
+script:
+  tox
+
+matrix:
+  include:
+    - { python: "3.6", env: TOXENV=py }
+    - { python: "3.7", env: TOXENV=py }
+
+    - { python: "3.6", env: TOXENV=style }

@@ -1,3 +1,3 @@
 [submodule "seplib"]
 	path = seplib
-	url = git@github.com:Seputaes/seplib-red.git
+	url = https://github.com/Seputaes/seplib-red.git
