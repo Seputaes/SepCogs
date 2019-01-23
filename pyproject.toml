@@ -1,8 +1,9 @@
 [tool.poetry]
 name = "sep-cogs"
 version = "0.1.0"
-description = ""
+description = "(Possibly) useful utilities and tools for your Discord server's Red-DiscordBot (V3)."
 authors = ["Seputaes <seputaes@sep.gg>"]
+license = "GPL-3.0"
 
 [tool.poetry.dependencies]
 python = ">=3.6.2,<3.8"
