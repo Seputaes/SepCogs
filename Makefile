@@ -1,8 +1,8 @@
 style:
-	black --check -l 99 -N --diff `git ls-files "*.py"`
+	black --check -l 120 -N --diff `git ls-files "*.py"`
 allstyle:
-	black --check -l 99 -N --diff .
+	black --check -l 120 -N --diff .
 reformat:
-	black -l 99 -N `git ls-files "*.py"`
+	black -l 120 -N `git ls-files "*.py"`
 allreformat:
-	black -l 99 -N .
+	black -l 120 -N .

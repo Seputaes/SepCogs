@@ -2,12 +2,11 @@ import discord
 
 from cog_shared.seplib.utils import Result
 
+
 # TODO: NEEDS TRANSLATION
 
 
-def check_configure_permissions(
-    trigger: discord.VoiceChannel, category: discord.CategoryChannel
-) -> Result:
+def check_configure_permissions(trigger: discord.VoiceChannel, category: discord.CategoryChannel) -> Result:
     """
     Verifies the bot's permissions to perform operations when configuring channel and category.
     :param trigger: Soapbox trigger channel specified by the user

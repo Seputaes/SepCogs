@@ -2,22 +2,14 @@ from typing import Dict, List, Optional, Union
 
 import discord
 
+from cog_shared.seplib.cog import SepCog
 from cog_shared.seplib.replies import InteractiveActions
 from cog_shared.seplib.utils import ContextWrapper, HexColor, Result
-from redbot.core.commands import Context
-
-from redbot.core import Config, checks
+from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
-from redbot.core import commands
-
-from cog_shared.seplib.cog import SepCog
-from soapbox.replies import SoapboxSuccessReply
-from .permissions_checks import (
-    check_configure_permissions,
-    bot_can_move_members,
-    bot_can_manage_category,
-)
-from .replies import SoapboxEmbedReply, SoapboxErrorReply
+from redbot.core.commands import Context
+from soapbox.permissions_checks import bot_can_manage_category, bot_can_move_members, check_configure_permissions
+from soapbox.replies import SoapboxEmbedReply, SoapboxErrorReply, SoapboxSuccessReply
 
 
 class Soapbox(SepCog, commands.Cog):
@@ -72,9 +64,7 @@ class Soapbox(SepCog, commands.Cog):
         """
         suffix: Optional[str] = self.guild_config_cache.get(guild.id, {}).get("suffix")
         if suffix is None:
-            self.logger.debug(
-                f"Suffix not found in the cache for Guild {guild.id}. Returning default."
-            )
+            self.logger.debug(f"Suffix not found in the cache for Guild {guild.id}. Returning default.")
             return self.DEFAULT_SOAPBOX_SUFFIX
         return suffix
 
@@ -85,13 +75,9 @@ class Soapbox(SepCog, commands.Cog):
         :param guild: Guild for which to get the max user channels setting.
         :return: Int, max number of user Soapbox channels.
         """
-        max_chan: Optional[int] = self.guild_config_cache.get(guild.id, {}).get(
-            "user_max_channels"
-        )
+        max_chan: Optional[int] = self.guild_config_cache.get(guild.id, {}).get("user_max_channels")
         if max_chan is None:
-            self.logger.debug(
-                f"Max user channels is not in the cache for Guild {guild.id}. Returning default."
-            )
+            self.logger.debug(f"Max user channels is not in the cache for Guild {guild.id}. Returning default.")
             return self.DEFAULT_MAX_USER_SOAPBOXES
         return max_chan
 
@@ -107,9 +93,7 @@ class Soapbox(SepCog, commands.Cog):
 
         channel = guild.get_channel(channel_id)
         if channel is None:
-            self.logger.error(
-                f"Soapbox channel no longer exists! Guild: {guild.id} | Channel ID: {channel_id})"
-            )
+            self.logger.error(f"Soapbox channel no longer exists! Guild: {guild.id} | Channel ID: {channel_id})")
         return channel
 
     def _get_soapbox_category(self, guild: discord.Guild) -> Optional[discord.CategoryChannel]:
@@ -124,15 +108,10 @@ class Soapbox(SepCog, commands.Cog):
 
         category = guild.get_channel(category_id)
         if category is None:
-            self.logger.error(
-                f"Soapbox category no longer exists! Guild: {guild.id} | "
-                f"Category ID: {category_id}"
-            )
+            self.logger.error(f"Soapbox category no longer exists! Guild: {guild.id} | " f"Category ID: {category_id}")
         return category
 
-    async def _set_soapbox_config(
-        self, channel: discord.VoiceChannel, category: discord.CategoryChannel
-    ) -> None:
+    async def _set_soapbox_config(self, channel: discord.VoiceChannel, category: discord.CategoryChannel) -> None:
         """
         Updates the guild's configuration in the cache and database with the specified trigger
         channel and category for the Soapbox channels.
@@ -150,8 +129,7 @@ class Soapbox(SepCog, commands.Cog):
         self.guild_config_cache[guild.id] = guild_cache
         await self.config.guild(guild).config.set(guild_cache)
         self.logger.info(
-            f"Updated the configuration for Guild {guild.id} | Category: {category.id} | "
-            f"Channel: {channel.id}"
+            f"Updated the configuration for Guild {guild.id} | Category: {category.id} | " f"Channel: {channel.id}"
         )
 
     async def _set_single_soapbox_config(
@@ -172,9 +150,7 @@ class Soapbox(SepCog, commands.Cog):
 
         self.guild_config_cache[guild.id] = guild_cache
         await self.config.guild(guild).config.set(self.guild_config_cache.get(guild.id))
-        self.logger.info(
-            f"Updated single config for Guild: {guild.id} | key: {key} | value: {value}"
-        )
+        self.logger.info(f"Updated single config for Guild: {guild.id} | key: {key} | value: {value}")
 
     @staticmethod
     def _channel_is_empty(channel: discord.VoiceChannel) -> bool:
@@ -195,9 +171,9 @@ class Soapbox(SepCog, commands.Cog):
         :param channel: Voice channel to check!
         :return: Boolean indicating whether it is a Soapbox channel.
         """
-        return channel.category == self._get_soapbox_category(
-            guild=channel.guild
-        ) and self._has_soapbox_suffix(channel=channel)
+        return channel.category == self._get_soapbox_category(guild=channel.guild) and self._has_soapbox_suffix(
+            channel=channel
+        )
 
     def _should_delete_channel(self, channel: discord.VoiceChannel):
         """
@@ -205,9 +181,7 @@ class Soapbox(SepCog, commands.Cog):
         :param channel: Channel to check
         :return: Boolean whether it is eligible to be deleted.
         """
-        return self._is_soapbox_channel(channel=channel) and self._channel_is_empty(
-            channel=channel
-        )
+        return self._is_soapbox_channel(channel=channel) and self._channel_is_empty(channel=channel)
 
     def _check_delete_channels(
         self, category: discord.CategoryChannel = None, guild: discord.Guild = None
@@ -273,23 +247,16 @@ class Soapbox(SepCog, commands.Cog):
             new_vc: discord.VoiceChannel = await guild.create_voice_channel(
                 category=category, name=channel_name, reason="Created by Soapbox Cog."
             )
-            self.logger.info(
-                f"Created new Soapbox channel. Guild: {guild.id} | Member: {member} | "
-                f"VC: {new_vc.id}"
-            )
+            self.logger.info(f"Created new Soapbox channel. Guild: {guild.id} | Member: {member} | " f"VC: {new_vc.id}")
             return new_vc
         except discord.HTTPException as e:
             self.logger.error(f"Error from Discord while creating voice channel. Error: {e}")
             message = e.args[0] if e.args else ""
             return Result(
-                success=False,
-                error=f"Discord returned an error while creating a voice channel. "
-                f"Error: {message}",
+                success=False, error=f"Discord returned an error while creating a voice channel. " f"Error: {message}"
             )
 
-    async def _move_member_to_channel(
-        self, member: discord.Member, channel: discord.VoiceChannel
-    ) -> Result:
+    async def _move_member_to_channel(self, member: discord.Member, channel: discord.VoiceChannel) -> Result:
         """
         Moves a member into the specified voice channel.
         :param member: The member to move.
@@ -298,15 +265,12 @@ class Soapbox(SepCog, commands.Cog):
         """
         try:
             await member.move_to(channel=channel, reason="Moved by Soapbox Cog.")
-            self.logger.info(
-                f"Moved member into channel. Member: {member} | Channel: {channel.id}"
-            )
+            self.logger.info(f"Moved member into channel. Member: {member} | Channel: {channel.id}")
             return Result(success=True, error=None)
         except discord.HTTPException as e:
             return Result(
                 success=False,
-                error=f"Error from Disocrd when attempting to move user to "
-                f"Soapbox Channel. Error: {e}",
+                error=f"Error from Disocrd when attempting to move user to " f"Soapbox Channel. Error: {e}",
             )
 
     async def _move_member_and_delete(self, member: discord.Member):
@@ -321,9 +285,7 @@ class Soapbox(SepCog, commands.Cog):
                 name="_DEL_{}".format(member.display_name)
             )
             await self._move_member_to_channel(member=member, channel=kick_channel)
-            await kick_channel.delete(
-                reason="Soapbox kick channel. Deleting temporary kick channel."
-            )
+            await kick_channel.delete(reason="Soapbox kick channel. Deleting temporary kick channel.")
             self.logger.info(
                 f"Deleting kick channel. Guild: {member.guild.id} | "
                 f"Member: {member} | Channel ID: {kick_channel.id}"
@@ -332,13 +294,10 @@ class Soapbox(SepCog, commands.Cog):
         except discord.HTTPException as e:
             return Result(
                 success=False,
-                error=f"Discord returned an error while attempting to create/delete Kick channel. "
-                f"Error: {e}",
+                error=f"Discord returned an error while attempting to create/delete Kick channel. " f"Error: {e}",
             )
 
-    async def _create_channel_and_move(
-        self, category: discord.CategoryChannel, member: discord.Member
-    ) -> Result:
+    async def _create_channel_and_move(self, category: discord.CategoryChannel, member: discord.Member) -> Result:
         """
         Attempts to create a new Soapbox channel for a member and move them to it.
 
@@ -374,27 +333,19 @@ class Soapbox(SepCog, commands.Cog):
         if before.channel == after.channel:
             return  # edge case, do nothing
 
-        if after.channel is not None and after.channel == self._get_soapbox_channel(
-            guild=member.guild
-        ):
+        if after.channel is not None and after.channel == self._get_soapbox_channel(guild=member.guild):
             category = self._get_soapbox_category(member.guild)
             if not category:
-                self.logger.error(
-                    f"Soapbox category has not been configured for guild {after.channel.guild.id}"
-                )
+                self.logger.error(f"Soapbox category has not been configured for guild {after.channel.guild.id}")
                 return  # the category doesn't exist
             result = bot_can_manage_category(category=category)
             if not result.success:
-                self.logger.error(
-                    f"{result.error}" f"Guild: {category.guild} | Category ID: {category.id}"
-                )
+                self.logger.error(f"{result.error}" f"Guild: {category.guild} | Category ID: {category.id}")
                 return
             return await self._create_channel_and_move(category=category, member=member)
 
         if before.channel is not None:
-            if self._is_soapbox_channel(channel=before.channel) and self._channel_is_empty(
-                before.channel
-            ):
+            if self._is_soapbox_channel(channel=before.channel) and self._channel_is_empty(before.channel):
                 result = bot_can_manage_category(before.channel.category)
                 if not result.success:
                     self.logger.error(
@@ -404,9 +355,7 @@ class Soapbox(SepCog, commands.Cog):
                     )
                     return
                 try:
-                    await before.channel.delete(
-                        reason="Deleted by Soapbox Cog. Channel was empty."
-                    )
+                    await before.channel.delete(reason="Deleted by Soapbox Cog. Channel was empty.")
                     self.logger.info(
                         f"Soapbox channel is empty. Deleting channel. "
                         f"Guild: {before.channel.guild.id} | "
@@ -432,10 +381,7 @@ class Soapbox(SepCog, commands.Cog):
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
     async def soapbox_config(
-        self,
-        ctx: Context,
-        trigger_channel: discord.VoiceChannel,
-        target_category: discord.CategoryChannel,
+        self, ctx: Context, trigger_channel: discord.VoiceChannel, target_category: discord.CategoryChannel
     ):
         """
         Main Soapbox configuration of the trigger channel and channel category.
@@ -473,9 +419,7 @@ class Soapbox(SepCog, commands.Cog):
                 confirm_message += f"\n{index+1}. `{channel.name}`"
             confirm_message += "\nAre you sure you wish to proceed?"
 
-            confirm_embed = SoapboxEmbedReply(
-                message=confirm_message, title="Channel Check"
-            ).build()
+            confirm_embed = SoapboxEmbedReply(message=confirm_message, title="Channel Check").build()
             confirmed = await InteractiveActions.yes_or_no_action(ctx=ctx, embed=confirm_embed)
 
             if not confirmed:
@@ -529,12 +473,8 @@ class Soapbox(SepCog, commands.Cog):
             return await SoapboxErrorReply(result.error).send(ctx)
 
         await self._set_single_soapbox_config(guild=ctx.guild, key=key, value=value)
-        success_message = (
-            "The following configuration has been updated:\n\n" f"**{key_name}:** {value_name}"
-        )
-        await SoapboxSuccessReply(message=success_message, title=f"Configured {key_name}").send(
-            ctx
-        )
+        success_message = "The following configuration has been updated:\n\n" f"**{key_name}:** {value_name}"
+        await SoapboxSuccessReply(message=success_message, title=f"Configured {key_name}").send(ctx)
         await ctx.tick()
 
     @soapbox_set.command(name="channel")
@@ -588,9 +528,7 @@ class Soapbox(SepCog, commands.Cog):
         """
 
         if max_channels <= 0:
-            await SoapboxErrorReply(
-                message="The number of max channels must be greater than 0."
-            ).send(ctx)
+            await SoapboxErrorReply(message="The number of max channels must be greater than 0.").send(ctx)
 
         return await self._base_command_set(
             ctx=ctx,
@@ -615,12 +553,7 @@ class Soapbox(SepCog, commands.Cog):
         suffix = suffix.strip()
 
         return await self._base_command_set(
-            ctx=ctx,
-            key="suffix",
-            key_name="Soapbox Channel Suffix",
-            value=suffix,
-            value_name=suffix,
-            result=None,
+            ctx=ctx, key="suffix", key_name="Soapbox Channel Suffix", value=suffix, value_name=suffix, result=None
         )
 
     @soapbox.command(name="check")
