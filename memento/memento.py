@@ -42,6 +42,10 @@ class Memento(SepCog, commands.Cog):
         self._ensure_futures()
 
     async def _init_cache(self):
+        """
+        Load the user and role reminders from the database into the cache/local memory.
+        :return: None
+        """
         await self.bot.wait_until_ready()
 
         users: Dict[int, Dict] = await self.config.all_users()
@@ -82,10 +86,22 @@ class Memento(SepCog, commands.Cog):
         self.role_reminder_cache = role_reminders
 
     def _register_config_entities(self, config: Config):
+        """
+        Register the config entities we will need for Memento.
+        Needed:
+          - User: Config and Reminder
+          - Roles: Reminders
+        :param config: Red config
+        :return:  None
+        """
         config.register_user(config={}, reminders=[])
         config.register_role(reminders=[])
 
     async def __monitor_reminders(self):
+        """
+        Async future which loops while the cog is loaded to check for reminders which are triggered.
+        :return: None
+        """
         await self.bot.wait_until_ready()
 
         while self == self.bot.get_cog(self.__class__.__name__):
@@ -124,13 +140,31 @@ class Memento(SepCog, commands.Cog):
             await asyncio.sleep(self.MONITOR_PROCESS_INTERVAL)
 
     async def _update_user_config(self, user: discord.User, config: Dict):
+        """
+        Overwrites the user config with the specified config map.
+        :param user: Discord user
+        :param config: Map of str/obj keys to store in the user's config
+        :return: None
+        """
         self.user_config_cache[user.id] = config
         await self.config.user(user).config.set(config)
 
     def _get_user_timezone(self, user: discord.User) -> Optional[str]:
+        """
+        Gets the user's timezone string stored in the config.
+        :param user: Discord user
+        :return: User's timezone string, which can be placed into pytz
+        """
         return self.user_config_cache.get(user.id, {}).get("timezone")
 
     async def _set_user_timezone(self, user: discord.User, timezone: str):
+        """
+        Updates the user's configuration to set the timezone field.
+        This should be a valid pytz timezone string.
+        :param user: Discord USer
+        :param timezone: pytz-compatible timezone string
+        :return: None
+        """
         current = self.user_config_cache.get(user.id, {})
         current.update({"timezone": timezone})
         self.user_config_cache[user.id] = current
@@ -138,24 +172,54 @@ class Memento(SepCog, commands.Cog):
         self.logger.info(f"Set user timezone. User: {user} | TZ: {timezone}")
 
     def _get_user_reminders(self, user: discord.User) -> List[UserReminder]:
+        """
+        Retrieves the user's reminders from the cache.
+        :param user: Discord User
+        :return: List of the user's active reminders
+        """
         return self.user_reminder_cache.get(user.id, [])
 
     def _get_role_reminders(self, role: discord.Role) -> List[RoleReminder]:
+        """
+        Retrieves the role's active reminders from the cache.
+        :param role: Discord role
+        :return: List of the role's active reminders
+        """
         return self.role_reminder_cache.get(role.id, [])
 
     async def _update_user_reminders(self, user: discord.User, reminders: List[UserReminder]):
+        """
+        Overwrites the user's reminder list with the one provided.
+        :param user: Discord User
+        :param reminders: Complete list of user reminders which will overwrite the user's current list
+        :return: None
+        """
         self.user_reminder_cache[user.id] = reminders
         db_reminders = [r.prepare_for_storage() for r in reminders]
         await self.config.user(user=user).reminders.set(db_reminders)
         self.logger.info(f"Updated reminders for User: {user} | Total: {len(reminders)}")
 
     async def _update_role_reminders(self, role: discord.Role, reminders: List[RoleReminder]):
+        """
+        Overwrites the role's reminder list with the one provided.
+        :param role: Discord Role
+        :param reminders: Complete list of role reminders which will overwrite the role's current list
+        :return: None
+        """
         self.role_reminder_cache[role.id] = reminders
         db_reminders = [r.prepare_for_storage() for r in reminders]
         await self.config.role(role=role).reminders.set(db_reminders)
         self.logger.info(f"Updated reminders for Role: {role} | Total: {len(reminders)}")
 
     async def _add_user_reminder(self, user: discord.User, dt: datetime, text: str, timezone: str):
+        """
+        Adds a single user reminder to the user's existing reminder list in the cache and database.
+        :param user: Discord User
+        :param dt: UTC-timezone agnostic datetime
+        :param text: Reminder text to send to the user when the reminder triggers.
+        :param timezone: User's timezone which was set at the time the reminder was created.
+        :return: None
+        """
         reminders = self._get_user_reminders(user=user)
         reminders.append(
             UserReminder(
@@ -178,6 +242,16 @@ class Memento(SepCog, commands.Cog):
         text: str,
         timezone: str,
     ):
+        """
+        Adds a single role reminder to the role's existing reminder list in the cache and database.
+        :param user: Discord.py User who created the reminder
+        :param role: Discord.py role which will be pinged.
+        :param channel: Discord.py channel which will have the reminder sent to it.
+        :param dt: UTC-timezone agnostic datetime
+        :param text: Reminder text to send to the channel when the reminder triggers.
+        :param timezone: Creating user's timezone which was set at the time the reminder was created.
+        :return: None
+        """
         reminders = self._get_role_reminders(role=role)
         reminders.append(
             RoleReminder(
@@ -196,6 +270,11 @@ class Memento(SepCog, commands.Cog):
         await self._update_role_reminders(role=role, reminders=reminders)
 
     async def _delete_reminder(self, reminder: Reminder):
+        """
+        Delete's a single reminder from the cache and database (if found)
+        :param reminder: Reminder to delete
+        :return: None
+        """
         if isinstance(reminder, UserReminder):
             current = self._get_user_reminders(user=reminder.created_by)
             new_reminders = [r for r in current if r.id_ != reminder.id_]
@@ -212,18 +291,34 @@ class Memento(SepCog, commands.Cog):
 
     @staticmethod
     def _parse_command_str(command_str: str) -> Optional[Tuple[str, str]]:
+        """
+        Parses a reminder (user and role) command string into its time and text components.
+        :param command_str: Raw command string from the reminder command
+        :return: Tuple, first index is the time string, second is the reminder text
+        """
         command_split = command_str.split("|", 1)
         if len(command_split) != 2:
             return None
         return command_split[0], command_split[1]
 
     @staticmethod
-    def _get_recurrent_for_tz(tz_info: DstTzInfo):
+    def _get_recurrent_for_tz(tz_info: DstTzInfo) -> recurrent.RecurringEvent:
+        """
+        Gets a Recurrent object for a specific timezone, so that future dates can be calculated accurately
+        :param tz_info:
+        :return:
+        """
         now = datetime.utcnow()
         localized = pytz.UTC.localize(now).astimezone(tz_info).replace(tzinfo=None)
         return recurrent.RecurringEvent(now_date=localized)
 
     def _parse_time_str(self, user: discord.User, reminder_time: str) -> Optional[datetime]:
+        """
+        Parse a time string into a datetime UTC-timezone aware datetime.
+        :param user: Discord user for which to calculate the datetime string
+        :param reminder_time: Reminder time string from the command.
+        :return: UTC-timezone aware datetime object.
+        """
         tz_str = self._get_user_timezone(user=user)
         tz_info = pytz.timezone(tz_str)
         tz_recurrent = self._get_recurrent_for_tz(tz_info=tz_info)
@@ -238,14 +333,25 @@ class Memento(SepCog, commands.Cog):
 
     @commands.group(name="memento", aliases=["remind"])
     async def memento(self, ctx: Context):
+        """
+        Create reminders for yourself or to ping a role in a specified channel.
+        """
         pass
 
     @memento.group(name="set")
     async def memento_set(self, ctx: Context):
+        """
+        Collection of user-specific configuration settings for Memento.
+        """
         pass
 
     @memento_set.command(name="tz")
     async def memento_set_tz(self, ctx: Context, tz: str):
+        """
+        Sets your timezone preference which will be used for absolute dates and times.
+
+        This must be set prior to setting up reminders.
+        """
 
         tz_str = TimezoneStrings.get_pytz_string(tz=tz)
         if not tz_str:
@@ -268,6 +374,15 @@ class Memento(SepCog, commands.Cog):
         role: Optional[discord.Role],
         channel: Optional[discord.TextChannel],
     ) -> Result:
+        """
+        Shared helper method for handling both user and role/channel reminder commands.
+        :param ctx: Red context in which the command was issued
+        :param command_str: Raw command string from the command
+        :param reminder_type: Class of the type of reminder being created
+        :param role: Discord role (optional, required in the case of Role Reminders)
+        :param channel: Discord channel (optional, required in the case of Role Reminders)
+        :return: Result success True if successful or success False with error message.
+        """
         user_timezone = self._get_user_timezone(user=ctx.author)
         if not user_timezone:
             reply = MementoErrorReply(
@@ -337,6 +452,21 @@ class Memento(SepCog, commands.Cog):
 
     @memento.group(name="me", invoke_without_command=True)
     async def memento_me(self, ctx: Context, *, command_str: str):
+        """
+        Create a reminder at a specified time which the bot will DM to you.
+
+        You must set your timezone with `[p]memento set tz` before using this command.
+
+        Command format: <time string> | <message>
+
+        You can use common natural language for the time. For example:
+
+          - tomorrow at 9pm | Call Sarah.
+          - in 3 hours | Check if the turkey is done
+          - friday at noon | Open loot boxes in Overwatch
+
+        The message is the message which the bot will send you in a DM when the time of the reminder passes.
+        """
         result = await self._handle_reminder_command(
             ctx=ctx, command_str=command_str, reminder_type=UserReminder, role=None, channel=None
         )
@@ -345,6 +475,9 @@ class Memento(SepCog, commands.Cog):
 
     @memento_me.command(name="list")
     async def memento_me_list(self, ctx: Context):
+        """
+        DM's you a list of your active reminders. You can delete reminders from this DM.
+        """
         user_reminders = self._get_user_reminders(user=ctx.author)
         if not user_reminders:
             reply = MementoEmbedReply(message="You have no personal reminders.", title="Reminder List")
@@ -368,6 +501,21 @@ class Memento(SepCog, commands.Cog):
     @commands.guild_only()
     @checks.mod_or_permissions()
     async def memento_role(self, ctx: Context, role: discord.Role, channel: discord.TextChannel, *, command_str: str):
+        """
+        Create a reminder at a specified time. The bot will mention the role in the specified channel.
+
+        You must set your timezone with `[p]memento set tz` before using this command.
+
+        Command format: <role> <channel> <time string> | <message>
+
+        You can use common natural language for the time. For example:
+
+          - tomorrow at 9pm | Call Sarah.
+          - in 3 hours | Check if the turkey is done
+          - friday at noon | Open loot boxes in Overwatch
+
+        The message is the message which the bot will send to the specified channel when the time comes.
+        """
         result = check_remind_role_permissions(channel=channel, role=role)
         if not result.success:
             return await MementoErrorReply(message=result.error).send(ctx)
@@ -382,6 +530,17 @@ class Memento(SepCog, commands.Cog):
     @commands.guild_only()
     @checks.mod_or_permissions()
     async def memento_role_list(self, ctx: Context, *, channel_or_role: Union[discord.Role, discord.TextChannel, str]):
+        """
+        Lists the active reminders for the specified role or channel.
+
+        If a role is supplied, it will output a list of all reminders which will mention that role,
+        along with the channels the message will be sent to.
+
+        If a channel is supplied, it will output a list of all reminders which will reminder a specified channel,
+        along with the role which will be mentioned in the channel.
+
+        You can delete reminders from this list.
+        """
         if isinstance(channel_or_role, str):
             return MementoErrorReply(message=f"`{channel_or_role}` is not a text channel or server role.")
 
