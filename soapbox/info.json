@@ -5,7 +5,7 @@
   "install_msg": "Thanks for installing Sep's Soapbox! **WARNING:** Configuring Soapbox will ***delete*** all empty voice channels which end with the default suffix. To see a list of channels it would delete, type `[p]soapbox check`.",
   "short": "Soapbox allows users to generate temporary voice channels by entering a specific voice channel.",
   "description": "Soapbox allows users to generate temporary voice channels by entering a specified voice channel. When that temporary voice channel is empty, it will be automatically deleted.",
-  "voice": ["voice", "channels", "utility"],
+  "tags": ["voice", "channels", "utility"],
   "required_cogs": {},
   "requirements": [],
   "disabled": false,
