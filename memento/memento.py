@@ -305,8 +305,8 @@ class Memento(SepCog, commands.Cog):
     def _get_recurrent_for_tz(tz_info: DstTzInfo) -> recurrent.RecurringEvent:
         """
         Gets a Recurrent object for a specific timezone, so that future dates can be calculated accurately
-        :param tz_info:
-        :return:
+        :param tz_info: Pytz timezone object
+        :return: Recurrent RecurringEvent localized to the timezone.
         """
         now = datetime.utcnow()
         localized = pytz.UTC.localize(now).astimezone(tz_info).replace(tzinfo=None)
@@ -359,7 +359,7 @@ class Memento(SepCog, commands.Cog):
             message = (
                 f"{tz} is not a valid timezone. Please choose from one of:\n\n"
                 f"{valid_options}\n\n"
-                f"For a **complete** list of valid timezones, please see [this list]({self.TIMEZONES_URL}"
+                f"For a **complete** list of valid timezones, please see [this list]({self.TIMEZONES_URL})"
             )
             reply = MementoErrorReply(title="Invalid Timezone", message=message)
             return await reply.send(ctx)
