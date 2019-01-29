@@ -1,0 +1,13 @@
+{
+  "author": ["seputaes (sep#0001)"],
+  "name": "LiveRole",
+  "type": "COG",
+  "install_msg": "Thanks for installing Sep's Live role.",
+  "short": "LiveRole assigns custom roles to users who are actively streaming.",
+  "description": "LiveRole assigns custom roles to users who are actively streaming.",
+  "tags": ["roles", "streaming"],
+  "required_cogs": {},
+  "requirements": [],
+  "disabled": false,
+  "hidden": false
+}
