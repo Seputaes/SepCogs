@@ -68,12 +68,10 @@ class Streamlabs(SepCog, commands.Cog):
     def _get_guild_auth(self, guild: discord.Guild):
         return self.guild_auth_cache.get(guild.id, None)
 
-    async def _update_guild_auth(self, auth: Dict):
-        self.guild_auth_cache = auth
-        for guild_id, guild_auth in self.guild_auth_cache.items():
-            guild = self.bot.get_guild(guild_id)
-            await self.config.guild(guild).auth.set(guild_auth)
-        self.logger.info(f"Updated Auth config.")
+    async def _update_guild_auth(self, guild: discord.Guild, auth: Dict):
+        self.guild_auth_cache[guild.id] = auth
+        await self.config.guild(guild=guild).auth.set(auth)
+        self.logger.info(f"Updated Auth config for Guild: {guild.name}|{guild.id}.")
 
     async def _check_command_guild_configured(self, ctx: Context):
         sl_api = self.sl_api.get(ctx.guild.id)
@@ -109,11 +107,9 @@ class Streamlabs(SepCog, commands.Cog):
 
         Be sure to run [p]streamlabs guide to fully understand how the process works.
         """
-        updated_auth = await StreamlabsConfig.start_config(
-            ctx=ctx, timeout=timeout, guild_auth_map=self.guild_auth_cache
-        )
+        updated_auth = await StreamlabsConfig.start_config(ctx=ctx, timeout=timeout)
         if updated_auth:
-            await self._update_guild_auth(auth=updated_auth)
+            await self._update_guild_auth(guild=ctx.guild, auth=updated_auth)
 
     @streamlabs.command(name="continue")
     @checks.admin_or_permissions()
@@ -124,11 +120,10 @@ class Streamlabs(SepCog, commands.Cog):
         This must only be run after [p]streamlabs config has been successfully run.
         """
         updated_auth = await StreamlabsConfig.continue_config(
-            ctx=ctx, timeout=timeout, guild_auth_map=self.guild_auth_cache
-        )
+            ctx=ctx, timeout=timeout, auth_data=self._get_guild_auth(ctx.guild))
         if updated_auth:
-            await self._update_guild_auth(auth=updated_auth)
-            self._refresh_streamlabs_api(guild_id=ctx.guild.id, guild_auth=updated_auth.get(ctx.guild.id, {}))
+            await self._update_guild_auth(auth=updated_auth, guild=ctx.guild)
+            self._refresh_streamlabs_api(guild_id=ctx.guild.id, guild_auth=updated_auth)
 
     @streamlabs.group(name="alert")
     @checks.admin_or_permissions()
