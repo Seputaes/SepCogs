@@ -120,7 +120,8 @@ class Streamlabs(SepCog, commands.Cog):
         This must only be run after [p]streamlabs config has been successfully run.
         """
         updated_auth = await StreamlabsConfig.continue_config(
-            ctx=ctx, timeout=timeout, auth_data=self._get_guild_auth(ctx.guild))
+            ctx=ctx, timeout=timeout, auth_data=self._get_guild_auth(ctx.guild)
+        )
         if updated_auth:
             await self._update_guild_auth(auth=updated_auth, guild=ctx.guild)
             self._refresh_streamlabs_api(guild_id=ctx.guild.id, guild_auth=updated_auth)
