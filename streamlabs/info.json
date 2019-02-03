@@ -1,0 +1,15 @@
+{
+  "author": ["seputaes (sep#0001)"],
+  "name": "Streamlabs",
+  "type": "COG",
+  "install_msg": "Thanks for installing Sep's Streamlabs Cog! ",
+  "short": "Store Streamlabs API configurations and provide a simple interface for interacting with Streamlabs.",
+  "description": "Store Streamlabs API configurations and provide a simple interface for interacting with Streamlabs.",
+  "tags": ["utility", "api", "streaming"],
+  "required_cogs": {
+    "streamlabs-api-red": "https://github.com/Seputaes/streamlabs-api-red.git"
+  },
+  "requirements": [],
+  "disabled": false,
+  "hidden": false
+}

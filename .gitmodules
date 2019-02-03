@@ -1,3 +1,6 @@
 [submodule "seplib"]
 	path = seplib
 	url = https://github.com/Seputaes/seplib-red.git
+[submodule "streamlabsapi"]
+	path = streamlabsapi
+	url = https://github.com/Seputaes/streamlabs-api-red.git
