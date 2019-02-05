@@ -4,13 +4,15 @@ import discord
 
 from cog_shared.seplib.cog import SepCog
 from cog_shared.seplib.replies import ErrorReply
-from cog_shared.seplib.utils import ContextWrapper, Result
+from cog_shared.seplib.utils import ContextWrapper
 from cog_shared.streamlabsapi.api import SLAPI
 from cog_shared.streamlabsapi.commands.streamlabs_config import StreamlabsConfig
 from cog_shared.streamlabsapi.replies import StreamlabsReply
-from redbot.core import Config, commands, checks
+from cog_shared.streamlabsapi.seplib.utils import Result
+from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.commands import Context
+from cog_shared.streamlabsapi.api.enums import CurrencyCode
 
 
 class Streamlabs(SepCog, commands.Cog):
@@ -330,6 +332,13 @@ class Streamlabs(SepCog, commands.Cog):
         if not sl_api:
             return
 
+        currency = currency.upper()
+        if currency not in CurrencyCode:
+            return await ErrorReply(
+                f'Currency "{currency}" is not a valid currency Code. '
+                f"Please see https://dev.streamlabs.com/docs/currency-codes for a list of valid codes."
+            ).send(ctx)
+
         donations = await sl_api.donations.get_donations(
             limit=limit, before=before, after=after, currency=currency, verified=verified
         )
@@ -359,28 +368,37 @@ class Streamlabs(SepCog, commands.Cog):
         amount: float,
         currency: str,
         message: str = None,
-        created_at: str = None,
+        created_at: int = None,
         skip_alert: bool = False,
     ):
         """
         Creates a new Streamlabs donation.
 
-        :param name: The name of the donor. Has to be between 2-25 chars and can only be alphanumeric + underscores.
-        :param identifier: An identifier for this donor, which is used to group donations with the same donor.
+        The donation ID will be printed out once successfully created.
+
+        **name:** The name of the donor. Has to be between 2-25 chars and can only be alphanumeric + underscores.
+        **identifier:** An identifier for this donor, which is used to group donations with the same donor.
                            For example, if you create more than one donation with the same identifier,
                            they will be grouped together as if they came from the same donor.
                            Typically this is best suited as an email address, or a unique hash.
-        :param amount: The amount of this donation.
-        :param currency: The 3 letter currency code for this donation: https://dev.streamlabs.com/docs/currency-codes
-        :param message: The message from the donor. Must be < 255 characters
-        :param created_at: A timestamp that identifies when this donation was made. Defaults to Now.
-        :param skip_alert:Boolean to indicate whether the alert should be skipped when the donation is posted.
-        :return: Prints out the new Donation ID
+        **amount:** The amount of this donation.
+        **currency:** The 3 letter currency code for this donation: https://dev.streamlabs.com/docs/currency-codes
+        **message:** The message from the donor. Must be < 255 characters
+        **created_at:** A timestamp that identifies when this donation was made. Defaults to Now.
+        **skip_alert:** Boolean to indicate whether the alert should be skipped when the donation is posted.
         """
 
         sl_api = await self._check_command_guild_configured(ctx=ctx)
         if not sl_api:
             return
+
+        currency = currency.upper()
+        if currency not in CurrencyCode:
+            return await ErrorReply(
+                f'Currency "{currency}" is not a valid currency Code. '
+                f"Please see https://dev.streamlabs.com/docs/currency-codes for a list of valid codes."
+            ).send(ctx)
+
         response = await sl_api.donations.create_donation(
             name=name,
             identifier=identifier,
@@ -391,5 +409,5 @@ class Streamlabs(SepCog, commands.Cog):
             skip_alert=skip_alert,
         )
         if isinstance(response, Result) and not response.success:
-            return await ErrorReply(message=response.error).send(ctx)
+            return await ErrorReply(message=f"Error from the Streamlabs API: {response.error}").send(ctx)
         await StreamlabsReply(message=f"Donation created with ID: {response}", title="Donation Created").send(ctx)
