@@ -308,6 +308,73 @@ class Streamlabs(SepCog, commands.Cog):
         """
         pass
 
+    async def _base_send_test_alert(self, ctx: Context, type_, platform: str = None) -> None:
+        sl_api = await self._check_command_guild_configured(ctx=ctx)
+        if not sl_api:
+            return
+        result = await sl_api.alerts.send_test_alert(type_=type_, platform=platform)
+        if not result.success:
+            return await ErrorReply(message=f"There was an Error sending a {type_} test alert: {result.error}").send(
+                ctx
+            )
+        await ctx.tick()
+
+    @streamlabs_alert.group(name="test")
+    @checks.admin_or_permissions()
+    async def streamlabs_alert_test(self, ctx: Context, platform: str = None):
+        """
+        Sends a test alert of your choosing (sub-command) to Streamlabs.
+        """
+        pass
+
+    @streamlabs_alert_test.command(name="follow")
+    async def streamlabs_alert_test_follow(self, ctx: Context, platform: str = None):
+        """
+        Sends a test Follow alert to Streamlabs.
+        Platform should be either "twitch" or "youtube"
+        """
+        await self._base_send_test_alert(ctx=ctx, type_="follow", platform=platform)
+
+    @streamlabs_alert_test.command(name="subscription", aliases=["sub"])
+    async def streamlabs_alert_test_subscription(self, ctx: Context, platform: str = None):
+        """
+        Sends a test Subscription alert to Streamlabs.
+        Platform should be either "twitch" or "youtube"
+        """
+        await self._base_send_test_alert(ctx=ctx, type_="subscription", platform=platform)
+
+    @streamlabs_alert_test.command(name="donation")
+    async def streamlabs_alert_test_donation(self, ctx: Context, platform: str = None):
+        """
+        Sends a test Donation alert to Streamlabs.
+        Platform should be either "twitch" or "youtube"
+        """
+        await self._base_send_test_alert(ctx=ctx, type_="donation", platform=platform)
+
+    @streamlabs_alert_test.command(name="host")
+    async def streamlabs_alert_test_host(self, ctx: Context, platform: str = None):
+        """
+        Sends a test Host alert to Streamlabs.
+        Platform should be either "twitch" or "youtube"
+        """
+        await self._base_send_test_alert(ctx=ctx, type_="host", platform=platform)
+
+    @streamlabs_alert_test.command(name="raid")
+    async def streamlabs_alert_test_raid(self, ctx: Context, platform: str = None):
+        """
+        Sends a test Raid alert to Streamlabs.
+        Platform should be either "twitch" or "youtube"
+        """
+        await self._base_send_test_alert(ctx=ctx, type_="raid", platform=platform)
+
+    @streamlabs_alert_test.command(name="bits")
+    async def streamlabs_alert_test_bits(self, ctx: Context, platform: str = None):
+        """
+        Sends a test Bit alert to Streamlabs.
+        Platform should be either "twitch" or "youtube"
+        """
+        await self._base_send_test_alert(ctx=ctx, type_="bits", platform=platform)
+
     @streamlabs_donations.command(name="list")
     @checks.admin_or_permissions()
     async def streamlabs_donations_list(
