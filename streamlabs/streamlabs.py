@@ -284,7 +284,7 @@ class Streamlabs(SepCog, commands.Cog):
             )
         await ctx.tick()
 
-    @streamlabs_alert.command(name="hide")
+    @streamlabs_alert.command(name="hide_video")
     @checks.admin_or_permissions()
     async def streamlabs_alert_hide_video(self, ctx: Context):
         """
@@ -328,6 +328,7 @@ class Streamlabs(SepCog, commands.Cog):
         pass
 
     @streamlabs_alert_test.command(name="follow")
+    @checks.admin_or_permissions()
     async def streamlabs_alert_test_follow(self, ctx: Context, platform: str = None):
         """
         Sends a test Follow alert to Streamlabs.
@@ -336,6 +337,7 @@ class Streamlabs(SepCog, commands.Cog):
         await self._base_send_test_alert(ctx=ctx, type_="follow", platform=platform)
 
     @streamlabs_alert_test.command(name="subscription", aliases=["sub"])
+    @checks.admin_or_permissions()
     async def streamlabs_alert_test_subscription(self, ctx: Context, platform: str = None):
         """
         Sends a test Subscription alert to Streamlabs.
@@ -344,6 +346,7 @@ class Streamlabs(SepCog, commands.Cog):
         await self._base_send_test_alert(ctx=ctx, type_="subscription", platform=platform)
 
     @streamlabs_alert_test.command(name="donation")
+    @checks.admin_or_permissions()
     async def streamlabs_alert_test_donation(self, ctx: Context, platform: str = None):
         """
         Sends a test Donation alert to Streamlabs.
@@ -352,6 +355,7 @@ class Streamlabs(SepCog, commands.Cog):
         await self._base_send_test_alert(ctx=ctx, type_="donation", platform=platform)
 
     @streamlabs_alert_test.command(name="host")
+    @checks.admin_or_permissions()
     async def streamlabs_alert_test_host(self, ctx: Context, platform: str = None):
         """
         Sends a test Host alert to Streamlabs.
@@ -360,6 +364,7 @@ class Streamlabs(SepCog, commands.Cog):
         await self._base_send_test_alert(ctx=ctx, type_="host", platform=platform)
 
     @streamlabs_alert_test.command(name="raid")
+    @checks.admin_or_permissions()
     async def streamlabs_alert_test_raid(self, ctx: Context, platform: str = None):
         """
         Sends a test Raid alert to Streamlabs.
@@ -368,6 +373,7 @@ class Streamlabs(SepCog, commands.Cog):
         await self._base_send_test_alert(ctx=ctx, type_="raid", platform=platform)
 
     @streamlabs_alert_test.command(name="bits")
+    @checks.admin_or_permissions()
     async def streamlabs_alert_test_bits(self, ctx: Context, platform: str = None):
         """
         Sends a test Bit alert to Streamlabs.
