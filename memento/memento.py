@@ -373,7 +373,7 @@ class Memento(SepCog, commands.Cog):
         reminder_type: Type[Reminder],
         role: Optional[discord.Role],
         channel: Optional[discord.TextChannel],
-    ) -> Result:
+    ) -> Result[bool]:
         """
         Shared helper method for handling both user and role/channel reminder commands.
         :param ctx: Red context in which the command was issued
@@ -391,7 +391,7 @@ class Memento(SepCog, commands.Cog):
             )
             await reply.send(ctx)
             await ContextWrapper(ctx).cross()
-            return Result(success=False, error="Timezone not set")
+            return Result(success=False, error="Timezone not set", value=False)
 
         command_ok = self._parse_command_str(command_str=command_str)
         if not command_ok:
@@ -399,7 +399,7 @@ class Memento(SepCog, commands.Cog):
             reply = MementoErrorReply(title="Unable to parse command", message=message)
             await reply.send(ctx)
             await ContextWrapper(ctx).cross()
-            return Result(success=False, error="Unable to parse command")
+            return Result(success=False, error="Unable to parse command", value=False)
 
         time_str, text = command_ok
         parsed_dt = self._parse_time_str(user=ctx.author, reminder_time=time_str)
@@ -408,14 +408,14 @@ class Memento(SepCog, commands.Cog):
             reply = MementoErrorReply(title="Invalid time specified", message=message)
             await reply.send(ctx)
             await ContextWrapper(ctx).cross()
-            return Result(success=False, error="Invalid time specified")
+            return Result(success=False, error="Invalid time specified", value=False)
 
         if parsed_dt <= datetime.now(tz=pytz.UTC):
             message = "The time specified occurs in the past."
             reply = MementoErrorReply(title="Invalid time specified", message=message)
             await reply.send(ctx)
             await ContextWrapper(ctx).cross()
-            return Result(success=False, error="Time occurs in past")
+            return Result(success=False, error="Time occurs in past", value=False)
 
         user_time_str = parsed_dt.astimezone(pytz.timezone(user_timezone)).strftime(self.CONFIRM_DT_FORMAT)
 
@@ -434,6 +434,7 @@ class Memento(SepCog, commands.Cog):
             return Result(
                 success=False,
                 error="Invalid type passed to reminder command. Please contact cog author. This should never happen!",
+                value=False,
             )
 
         confirm_msg = (
@@ -448,7 +449,7 @@ class Memento(SepCog, commands.Cog):
         if confirmed:
             await add_func()
             await ctx.tick()
-        return Result(success=True, error=None)
+        return Result(success=True, error=None, value=True)
 
     @memento.group(name="me", invoke_without_command=True)
     async def memento_me(self, ctx: Context, *, command_str: str):

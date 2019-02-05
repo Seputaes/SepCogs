@@ -229,7 +229,7 @@ class Soapbox(SepCog, commands.Cog):
 
     async def _create_soapbox_channel(
         self, category: discord.CategoryChannel, member: discord.Member
-    ) -> Union[Result, discord.VoiceChannel]:
+    ) -> Result[Optional[discord.VoiceChannel]]:
         """
         Creates a Soapbox channel for a member in the specified category.
         :param category: Category in which to create the Soapbox channel.
@@ -242,18 +242,20 @@ class Soapbox(SepCog, commands.Cog):
             channel_name = await self._get_soapbox_channel_name(member=member)
             if channel_name is None:
                 message = f"Member {member.id} is not allowed to create more Soapbox channels"
-                return Result(success=False, error=message)
+                return Result(success=False, error=message, value=None)
 
             new_vc: discord.VoiceChannel = await guild.create_voice_channel(
                 category=category, name=channel_name, reason="Created by Soapbox Cog."
             )
             self.logger.info(f"Created new Soapbox channel. Guild: {guild.id} | Member: {member} | " f"VC: {new_vc.id}")
-            return new_vc
+            return Result(success=True, value=new_vc, error=None)
         except discord.HTTPException as e:
             self.logger.error(f"Error from Discord while creating voice channel. Error: {e}")
             message = e.args[0] if e.args else ""
             return Result(
-                success=False, error=f"Discord returned an error while creating a voice channel. " f"Error: {message}"
+                success=False,
+                error=f"Discord returned an error while creating a voice channel. " f"Error: {message}",
+                value=None,
             )
 
     async def _move_member_to_channel(self, member: discord.Member, channel: discord.VoiceChannel) -> Result:
@@ -266,14 +268,15 @@ class Soapbox(SepCog, commands.Cog):
         try:
             await member.move_to(channel=channel, reason="Moved by Soapbox Cog.")
             self.logger.info(f"Moved member into channel. Member: {member} | Channel: {channel.id}")
-            return Result(success=True, error=None)
+            return Result(success=True, error=None, value=None)
         except discord.HTTPException as e:
             return Result(
                 success=False,
                 error=f"Error from Disocrd when attempting to move user to " f"Soapbox Channel. Error: {e}",
+                value=None,
             )
 
-    async def _move_member_and_delete(self, member: discord.Member):
+    async def _move_member_and_delete(self, member: discord.Member) -> Result:
         """
         Creates a dummy "kick channel" which is used to forcefully move the member out
         of the Soapbox Trigger channel.
@@ -290,11 +293,12 @@ class Soapbox(SepCog, commands.Cog):
                 f"Deleting kick channel. Guild: {member.guild.id} | "
                 f"Member: {member} | Channel ID: {kick_channel.id}"
             )
-            return Result(success=True, error=None)
+            return Result(success=True, error=None, value=None)
         except discord.HTTPException as e:
             return Result(
                 success=False,
                 error=f"Discord returned an error while attempting to create/delete Kick channel. " f"Error: {e}",
+                value=None,
             )
 
     async def _create_channel_and_move(self, category: discord.CategoryChannel, member: discord.Member) -> Result:
@@ -305,14 +309,13 @@ class Soapbox(SepCog, commands.Cog):
         :param member: Member for which to create the Soapbox channel.
         :return: Result, with success True if successful or an Error if Failure.
         """
-        new_vc = await self._create_soapbox_channel(category=category, member=member)
+        result = await self._create_soapbox_channel(category=category, member=member)
 
-        if isinstance(new_vc, Result):
+        if not result.success:
             result = await self._move_member_and_delete(member=member)
-            if not result.success:
-                self.logger.error(result.error)
-            return new_vc
-        return await self._move_member_to_channel(member=member, channel=new_vc)
+            self.logger.error(result.error)
+            return result
+        return await self._move_member_to_channel(member=member, channel=result.value)
 
     async def on_voice_state_update(
         self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState

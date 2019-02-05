@@ -23,8 +23,7 @@ def get_liverole_action(before: discord.Member, after: discord.Member) -> Option
         return None
 
 
-def bot_can_manage_roles(guild: discord.Guild) -> Result:
-    return Result.get_result(
-        check=lambda: guild.me.guild_permissions.manage_roles,
-        error="This bot is not allowed to manage roles on this server.",
-    )
+def bot_can_manage_roles(guild: discord.Guild) -> Result[bool]:
+    if guild.me.guild_permissions.manage_roles:
+        return Result(success=True, value=True, error=None)
+    return Result(success=False, value=False, error="This bot is not allowed to manage roles on this server.")
