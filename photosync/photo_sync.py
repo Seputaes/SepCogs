@@ -17,15 +17,17 @@ from redbot.core.commands import Context, commands
 
 class PhotoSync(SepCog, commands.Cog):
 
-    UPLOAD_URL = 'https://photoslibrary.googleapis.com/v1/uploads'
+    UPLOAD_URL = "https://photoslibrary.googleapis.com/v1/uploads"
 
     DISCORD_IMG_REQ_HEADERS = {
-        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0"
     }
 
-    SCOPES = ['https://www.googleapis.com/auth/photoslibrary',
-              'https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata',
-              'https://www.googleapis.com/auth/photoslibrary.sharing']
+    SCOPES = [
+        "https://www.googleapis.com/auth/photoslibrary",
+        "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata",
+        "https://www.googleapis.com/auth/photoslibrary.sharing",
+    ]
 
     def __init__(self, bot: Red):
         super(PhotoSync, self).__init__(bot=bot)
@@ -71,11 +73,14 @@ class PhotoSync(SepCog, commands.Cog):
                 return
             expires_str = guild_google_auth.get("expires")
             expires_dt = datetime.strptime(expires_str, "%Y-%m-%dT%H:%M:%SZ")
-            current_api = GooglePhotos(access_token=guild_google_auth.get("access_token"),
-                                       refresh_token=guild_google_auth.get("refresh_token"),
-                                       expires=expires_dt)
-            refresh_data = await current_api.refresh_access_token(client_id=guild_google_auth.get("client_id"),
-                                                                  client_secret=guild_google_auth.get("client_secret"))
+            current_api = GooglePhotos(
+                access_token=guild_google_auth.get("access_token"),
+                refresh_token=guild_google_auth.get("refresh_token"),
+                expires=expires_dt,
+            )
+            refresh_data = await current_api.refresh_access_token(
+                client_id=guild_google_auth.get("client_id"), client_secret=guild_google_auth.get("client_secret")
+            )
             if refresh_data:
                 new_expires = datetime.utcnow() + timedelta(seconds=refresh_data.get("expires_in"))
                 refresh_data["expires"] = new_expires.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -122,9 +127,7 @@ class PhotoSync(SepCog, commands.Cog):
                 return Result(success=True, value=album.get("id"), error=None)
 
         # album does not exist, create it
-        album_payload = {
-            "title": album_name
-        }
+        album_payload = {"title": album_name}
         create_result = await guild_api.api.create_album(album=album_payload)
         if not create_result.success:
             return create_result
@@ -230,10 +233,9 @@ class PhotoSync(SepCog, commands.Cog):
 
         :timeout: How much time you have in between each data entry command to enter its value
         """
-        updated_auth = await GooglePhotosConfig.continue_config(ctx=ctx,
-                                                          auth_data=self._get_guild_auth(service="google",
-                                                                                         guild=ctx.guild),
-                                                          timeout=timeout)
+        updated_auth = await GooglePhotosConfig.continue_config(
+            ctx=ctx, auth_data=self._get_guild_auth(service="google", guild=ctx.guild), timeout=timeout
+        )
         if updated_auth:
             await self._update_guild_auth(auth=updated_auth, guild=ctx.guild, service="google")
             # TODO: self._refresh_google_api(guild_id=ctx.guild.id, guild_auth=updated_auth)
@@ -293,8 +295,7 @@ class PhotoSync(SepCog, commands.Cog):
             token = upload_result.value
             file_name = os.path.basename(url)
 
-            batch_result = await guild_api.api.batch_create(album_id=album_id, upload_token=token,
-                                                            file_name=file_name)
+            batch_result = await guild_api.api.batch_create(album_id=album_id, upload_token=token, file_name=file_name)
             if not batch_result.success:
                 self.logger.error(batch_result.error)
                 continue

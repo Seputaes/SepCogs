@@ -10,14 +10,13 @@ from redbot.core.commands import Context
 
 
 class GooglePhotosConfig(object):
-
     @staticmethod
     async def config_guide(ctx: Context) -> discord.Message:
         message = (
             "Here's an overview of the steps you need to take to get Google Photos up and running:\n\n"
             "1. Log into your Google Account at https://console.developers.google.com/\n"
             "2. Create a new Project and give it a name\n"
-            "3. Select the Project and click \"+ ENALBE APIS AND SERVICES\"\n"
+            '3. Select the Project and click "+ ENALBE APIS AND SERVICES"\n'
             "4. Select Photos Library API and Enable.\n"
             "5. Go back to the Project Dashboard and to Credentials.\n"
             "6. Go to Oauth consent Screen and add an Application Name\n"
@@ -27,7 +26,7 @@ class GooglePhotosConfig(object):
             "  - https://www.googleapis.com/auth/photoslibrary.sharing\n"
             "8. Save\n"
             "9. Go to Credentials > Create > OAuth Client ID. Select Web Application.\n"
-            "10. Enter Name and for the Redirect URI, enter \"https://localhost/gp_auth\"\n"
+            '10. Enter Name and for the Redirect URI, enter "https://localhost/gp_auth"\n'
             "  - **WARNING:** DO NOT enter a domain here that you do NOT have control over!\n"
             "11. Save. Make note of the Redirect URI, and the Client ID and Secret that appears when you save. "
             "You will need them later."
@@ -66,7 +65,7 @@ class GooglePhotosConfig(object):
         response_text = predicate_check.result.clean_content
         await predicate_check.result.delete()
         return response_text
-    
+
     @staticmethod
     async def __config_client_id(ctx: Context, timeout: int) -> str:
         title = "Google Photos Configruation [Part 2 of 6] - Client ID"
@@ -111,7 +110,7 @@ class GooglePhotosConfig(object):
         embed = PhotoSyncReply(message=message, title=title).build()
         embed.add_field(name="Next Step", inline=False, value=next_step_message)
         return await ctx.send(content=ctx.author.mention, embed=embed)
-    
+
     @staticmethod
     async def start_config(ctx: Context, timeout: int = 60) -> Optional[Dict[str, str]]:
         auth_data = {}
@@ -149,7 +148,9 @@ class GooglePhotosConfig(object):
         return auth_data
 
     @staticmethod
-    async def continue_config(ctx: Context, auth_data: Dict[str, str], timeout: int = 60) -> Optional[Dict[str, Union[str, int]]]:
+    async def continue_config(
+        ctx: Context, auth_data: Dict[str, str], timeout: int = 60
+    ) -> Optional[Dict[str, Union[str, int]]]:
         if not all(k in auth_data for k in ["client_id", "client_secret", "redirect_uri"]):
             message = (
                 f"Configuration for this guild is not started or complete. "

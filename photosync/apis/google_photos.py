@@ -20,12 +20,14 @@ class BaseGoogleAPI(object):
         append_path = "" if append_path is None else append_path
         return f"{self.UPLOAD_URL}{append_path}"
 
-    async def _raw_request(self, method: Method, params: Optional[Dict] = None, data: Optional[Dict] = None,
-                           append_path: str = None) -> Result[Dict]:
+    async def _raw_request(
+        self, method: Method, params: Optional[Dict] = None, data: Optional[Dict] = None, append_path: str = None
+    ) -> Result[Dict]:
         pass
 
-    async def _request(self, method: Method, params: Optional[Dict] = None, data: Optional[Dict] = None,
-                       append_path: str = None) -> Result[Dict]:
+    async def _request(
+        self, method: Method, params: Optional[Dict] = None, data: Optional[Dict] = None, append_path: str = None
+    ) -> Result[Dict]:
         params = {} if params is None else params
         params["access_token"] = self._access_token
 
@@ -44,9 +46,11 @@ class GoogleAuthorizeAPI(BaseGoogleAPI):
 
     API_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 
-    PHOTOS_SCOPES = "https://www.googleapis.com/auth/photoslibrary " \
-                    "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata " \
-                    "https://www.googleapis.com/auth/photoslibrary.sharing"
+    PHOTOS_SCOPES = (
+        "https://www.googleapis.com/auth/photoslibrary "
+        "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata "
+        "https://www.googleapis.com/auth/photoslibrary.sharing"
+    )
 
     @staticmethod
     def build_auth_url(client_id: str, redirect_uri: str) -> str:
@@ -63,7 +67,7 @@ class GoogleAuthorizeAPI(BaseGoogleAPI):
             "scope": GoogleAuthorizeAPI.PHOTOS_SCOPES,
             "response_type": "code",
             "access_type": "offline",
-            "include_granted_scopes": "true"
+            "include_granted_scopes": "true",
         }
         query_string = urlencode(params)
         return f"{url}?{query_string}"
@@ -78,7 +82,9 @@ class GoogleTokenAPI(BaseGoogleAPI):
         return f"{GoogleTokenAPI.API_URL}"
 
     @staticmethod
-    async def get_access_token(client_id: str, client_secret: str, redirect_uri: str, auth_code: str) -> Result[Optional[Dict[str, str]]]:
+    async def get_access_token(
+        client_id: str, client_secret: str, redirect_uri: str, auth_code: str
+    ) -> Result[Optional[Dict[str, str]]]:
         auth_data = {
             "client_id": client_id,
             "client_secret": client_secret,
@@ -91,12 +97,16 @@ class GoogleTokenAPI(BaseGoogleAPI):
                 if resp.status != 200:
                     return Result(success=False, value=None, error=f"Error from Google API: {resp.content}")
                 data = await resp.json()
-                expires_time = datetime.strptime(resp.headers.get("Date"), "%a, %d %b %Y %H:%M:%S GMT") + timedelta(seconds=data.get("expires_in"))
+                expires_time = datetime.strptime(resp.headers.get("Date"), "%a, %d %b %Y %H:%M:%S GMT") + timedelta(
+                    seconds=data.get("expires_in")
+                )
                 data["expires"] = expires_time.strftime("%Y-%m-%dT%H:%M:%SZ")
                 return Result(success=True, value=data, error=None)
 
     @staticmethod
-    async def get_refresh_token(client_id: str, client_secret: str, refresh_token: str) -> Result[Optional[Dict[str, str]]]:
+    async def get_refresh_token(
+        client_id: str, client_secret: str, refresh_token: str
+    ) -> Result[Optional[Dict[str, str]]]:
         auth_data = {
             "client_id": client_id,
             "client_secret": client_secret,
@@ -117,16 +127,14 @@ class GooglePhotosAPI(BaseGoogleAPI):
     BATCH_CREATE_URL = "https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate"
 
     DISCORD_IMG_REQ_HEADERS = {
-        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0"
     }
 
     def __init__(self, access_token: str):
         super(GooglePhotosAPI, self).__init__(access_token=access_token)
 
     async def get_album_list(self) -> Result[Optional[List[Dict]]]:
-        params = {
-            "access_token": self._access_token
-        }
+        params = {"access_token": self._access_token}
         async with aiohttp.ClientSession() as session:
             async with session.get(url=self.ALBUMS_URL, params=params) as resp:
                 if resp.status != 200:
@@ -135,13 +143,8 @@ class GooglePhotosAPI(BaseGoogleAPI):
                 return Result(success=True, value=data.get("albums"), error=None)
 
     async def create_album(self, album: Dict):
-        payload = {
-            "album": album,
-
-        }
-        headers = {
-            "Authorization": f"Bearer {self._access_token}",
-        }
+        payload = {"album": album}
+        headers = {"Authorization": f"Bearer {self._access_token}"}
         async with aiohttp.ClientSession() as session:
             async with session.post(url=self.ALBUMS_URL, json=payload, headers=headers) as resp:
                 if resp.status not in [200, 201]:
@@ -150,9 +153,7 @@ class GooglePhotosAPI(BaseGoogleAPI):
 
     async def share_album(self, album_id: str, share_options: Dict):
         share_url = f"{self.ALBUMS_URL}/{album_id}:share"
-        headers = {
-            "Authorization": f"Bearer {self._access_token}"
-        }
+        headers = {"Authorization": f"Bearer {self._access_token}"}
         async with aiohttp.ClientSession() as session:
             async with session.post(url=share_url, json=share_options, headers=headers) as resp:
                 if resp.status not in [200, 201]:
@@ -163,7 +164,7 @@ class GooglePhotosAPI(BaseGoogleAPI):
         headers = {
             "Authorization": f"Bearer {self._access_token}",
             "Content-Type": "application/octet-stream",
-            "X-Goog-Upload-Protocol": "raw"
+            "X-Goog-Upload-Protocol": "raw",
         }
         async with aiohttp.ClientSession() as session:
             async with session.post(url=self.UPLOAD_URL, headers=headers, data=image_bytes) as resp:
@@ -173,23 +174,12 @@ class GooglePhotosAPI(BaseGoogleAPI):
 
     async def batch_create(self, album_id: str, upload_token: str, file_name: str) -> Result[Optional[str]]:
         payload = {
-            'albumId': album_id,
-            'newMediaItems': [
-                {
-                    'description': file_name,
-                    'simpleMediaItem': {
-                        'uploadToken': upload_token
-                    }
-                }
-            ],
+            "albumId": album_id,
+            "newMediaItems": [{"description": file_name, "simpleMediaItem": {"uploadToken": upload_token}}],
         }
-        headers = {
-            "Authorization": f"Bearer {self._access_token}"
-        }
+        headers = {"Authorization": f"Bearer {self._access_token}"}
         async with aiohttp.ClientSession() as session:
             async with session.post(url=self.BATCH_CREATE_URL, headers=headers, json=payload) as resp:
                 if resp.status not in [200, 201]:
                     return Result(success=False, error=await resp.text(), value=None)
                 return Result(success=True, value=await resp.text())
-
-
