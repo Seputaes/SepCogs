@@ -15,7 +15,7 @@ from redbot.core.bot import Red
 from redbot.core.commands import Context, commands
 
 
-class PhotoSync(SepCog, commands.Cog):
+class PhotoSync(SepCog):
 
     UPLOAD_URL = "https://photoslibrary.googleapis.com/v1/uploads"
 
@@ -262,6 +262,7 @@ class PhotoSync(SepCog, commands.Cog):
         await self._add_google_mapping(guild=ctx.guild, channel=channel, album_name=album_name)
         return await ctx.tick()
 
+    @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         """
         Discord event to upload Google Photos.

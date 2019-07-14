@@ -105,6 +105,7 @@ class LiveRole(SepCog, commands.Cog):
         await self._update_liverole_role(guild=ctx.guild, role=role)
         return await ctx.tick()
 
+    @commands.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):
         """
         Triggered when a Member Update event is sent by Discord. Checks if LiveRole has been configured,

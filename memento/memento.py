@@ -26,7 +26,7 @@ from redbot.core.bot import Red
 from redbot.core.commands import Context
 
 
-class Memento(SepCog, commands.Cog):
+class Memento(SepCog):
     MONITOR_PROCESS_INTERVAL = 2
     CONFIRM_DT_FORMAT = "%b %d, %Y %I:%M:%S%p"
     TIMEZONES_URL = "https://sep.gg/timezones"

@@ -12,7 +12,7 @@ from soapbox.permissions_checks import bot_can_manage_category, bot_can_move_mem
 from soapbox.replies import SoapboxEmbedReply, SoapboxErrorReply, SoapboxSuccessReply
 
 
-class Soapbox(SepCog, commands.Cog):
+class Soapbox(SepCog):
     """
     Soapbox is a cog which allows users to create their own temporary voice channels by entering a
     specific voice channel. When no users are in that temporary channel,
@@ -317,6 +317,7 @@ class Soapbox(SepCog, commands.Cog):
             return result
         return await self._move_member_to_channel(member=member, channel=result.value)
 
+    @commands.Cog.listener()
     async def on_voice_state_update(
         self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState
     ):

@@ -9,5 +9,6 @@
   "required_cogs": {},
   "requirements": ["recurrent","pytz", "timeago"],
   "disabled": false,
-  "hidden": false
+  "hidden": false,
+  "min_bot_version": "3.1.1"
 }

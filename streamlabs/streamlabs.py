@@ -15,7 +15,7 @@ from redbot.core.commands import Context
 from cog_shared.streamlabsapi.api.enums import CurrencyCode
 
 
-class Streamlabs(SepCog, commands.Cog):
+class Streamlabs(SepCog):
     def __init__(self, bot: Red):
         super(Streamlabs, self).__init__(bot=bot)
 
