@@ -90,7 +90,7 @@ class PhotoSync(SepCog):
 
     async def _add_google_mapping(self, guild: discord.Guild, channel: discord.TextChannel, album_name: str):
         current_map = self.guild_google_maps_config.get(guild.id, {})
-        current_map[channel.id] = album_name
+        current_map[str(channel.id)] = album_name
         self.guild_google_maps_config[guild.id] = current_map
         await self.config.guild(guild=guild).google_maps.set(current_map)
         self.logger.info(f"Added Google Photos mapping: Channel: {channel.name}|{channel.id} | Album: {album_name}")
