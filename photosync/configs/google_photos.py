@@ -172,9 +172,7 @@ class GooglePhotosConfig(object):
         if not result.success:
 
             return await ErrorReply(
-                message="Authentication check failed. Please ensure"
-                "that the provided Auth Code is correct "
-                "and Auth Code are correct."
+                message="Authentication check failed. Please ensure" "that the provided Auth Code is correct."
             ).send(ctx)
         auth_data.update(result.value)
         await SuccessReply(message="Successfully authenticated to the Google API.").send(ctx)
