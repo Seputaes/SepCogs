@@ -12,7 +12,7 @@ from photosync.apis import GooglePhotos
 from photosync.configs import GooglePhotosConfig
 from redbot.core import Config, checks
 from redbot.core.bot import Red
-from redbot.core.commands import Context, commands
+from redbot.core.commands import Context, commands, guild_only
 
 
 class PhotoSync(SepCog):
@@ -169,8 +169,10 @@ class PhotoSync(SepCog):
             return Result(success=False, error="Bot does not have permissions to read that channel.", value=None)
         return Result(success=True, error=None, value=None)
 
+
     @commands.group(name="photosync")
     @checks.admin_or_permissions()
+    @guild_only()
     async def photosync(self, ctx: Context):
         """
         Main PhotoSync entry command.
