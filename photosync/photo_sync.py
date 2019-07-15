@@ -169,7 +169,6 @@ class PhotoSync(SepCog):
             return Result(success=False, error="Bot does not have permissions to read that channel.", value=None)
         return Result(success=True, error=None, value=None)
 
-
     @commands.group(name="photosync")
     @checks.admin_or_permissions()
     @guild_only()
